@@ -159,14 +159,14 @@ def calculate_ccf_for_neid_orders(w,f,v,M,berv,orders=[55,56],plot=False,ax=None
     if ax is None and plot is True:
         fig, ax = plt.subplots()
     ccf_array = np.zeros((num_neid_orders+1,len(v)))
-    for o in orders:
+    for o in (np.array(orders) - 10):
         ccf_array[o] = calculate_ccf(w[o],f[o],v,M.wi,M.wf,M.weight,berv)
         if plot:
             if color is None:
                 ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o))
             else:
                 ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o),color=color)
-    ccf_array[num_neid_orders] = np.nansum(ccf_array[orders],axis=0)
+    ccf_array[num_neid_orders] = np.nansum(ccf_array[(np.array(orders) - 10)],axis=0)
     if plot:
         ax.legend(loc="lower right",fontsize=10)
         ax.set_xlabel('v [km/s]')
