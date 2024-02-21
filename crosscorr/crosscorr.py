@@ -134,3 +134,43 @@ def calculate_ccf_for_hpf_orders(w,f,v,M,berv,orders=[3,4,5,6,14,15,16,17,18],pl
         ax.set_title('CCF')
     return ccf_array
 
+def calculate_ccf_for_neid_orders(w,f,v,M,berv,orders=[55,56],plot=False,ax=None,color=None,subslice=None, num_neid_orders = 94):
+    """
+    Loop through and Calculate CCFs for all HPF orders
+    
+    INPUT:
+        w - wavelength matrix (of 28 orders)
+        f - flux matrix for that wavelength array (of 28 orders)
+        M - mask object
+        berv - barycentric correction
+        orders = orders to calculate. If only using a subset of 28 orders then the CCF for other orders will be 0s
+    
+    OUTPUT:
+        An array the size of (len(v),28) with CCF
+        
+    EXAMPLE:
+        M = mask.Mask(filename="0_MASKS/20190124_gj699/tellmask/all.mas",disp=2.,constant_v=True)
+        v = np.linspace(-15,15,161)
+        orders = [5]#[3,4,5,6],14,15,16,17
+        c = calculate_ccf_for_hpf_orders(w,f,v,M,berv,orders=orders,plot=True)
+    """
+    
+    N = len(orders)
+    if ax is None and plot is True:
+        fig, ax = plt.subplots()
+    ccf_array = np.zeros((num_neid_orders+1,len(v)))
+    for o in orders:
+        ccf_array[o] = calculate_ccf(w[o],f[o],v,M.wi,M.wf,M.weight,berv)
+        if plot:
+            if color is None:
+                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o))
+            else:
+                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o),color=color)
+    ccf_array[num_neid_orders] = np.nansum(ccf_array[orders],axis=0)
+    if plot:
+        ax.legend(loc="lower right",fontsize=10)
+        ax.set_xlabel('v [km/s]')
+        ax.set_ylabel('Normalized flux')
+        ax.set_title('CCF')
+    return ccf_array
+
