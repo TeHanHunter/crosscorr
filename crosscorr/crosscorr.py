@@ -1,14 +1,15 @@
-#from .CCF_1d import CCF_1d
-#from .CCF_3d import CCF_3d
-#import CCF_1d, CCF_3d
-#from . import CCF_1d, CCF_3d
+# from .CCF_1d import CCF_1d
+# from .CCF_3d import CCF_3d
+# import CCF_1d, CCF_3d
+# from . import CCF_1d, CCF_3d
 # We don't need to do relative import as these are extensions as part of setup.py
 import _CCF_1d, _CCF_3d, _CCF_pix
 import numpy as np
 import matplotlib.pyplot as plt
 
-def calculate_ccf(w,f,v,mask_l,mask_h,mask_w,berv=0.,
-          wavel_clip_edges=0.,method='doppler_3d',verbose=True):
+
+def calculate_ccf(w, f, v, mask_l, mask_h, mask_w, berv=0.,
+                  wavel_clip_edges=0., method='doppler_3d', verbose=True):
     """
     Calculate a weighted binary mask CCF.
 
@@ -38,55 +39,59 @@ def calculate_ccf(w,f,v,mask_l,mask_h,mask_w,berv=0.,
     mm = np.isfinite(f)
     w = w[mm]
     f = f[mm]
-    II = np.where( (mask_l > wavel_clip_edges+w.min()) & (mask_h < w.max()-wavel_clip_edges))
+    II = np.where((mask_l > wavel_clip_edges + w.min()) & (mask_h < w.max() - wavel_clip_edges))
 
     # This is an additional scaling parameter in the CERES CCF generation, we don't need that so set to 1
     sn = np.ones(len(f))
-    
-    if method=='doppler_3d':
+    # print(len(mask_l > wavel_clip_edges + w.min()))
+    # print(sum(mask_l > wavel_clip_edges + w.min()))
+    # print(sum(mask_h < w.max() - wavel_clip_edges))
+    # print(mask_l)
+    # print(wavel_clip_edges + w.min())
+    if method == 'doppler_3d':
         try:
             for k in range(N):
-                ccf[k] = _CCF_3d.ccf(mask_l[II], 
-                                    mask_h[II], 
-                                    w,
-                                    f,
-                                    mask_w[II],
-                                    sn, # Additional SNR scaling factor, just setting to 1
-                                    v[k],
-                                    berv,
-                                    0.) # Additional velocity that is not needed
-            return ccf
-        except Exception as e:
-            if verbose: print(e)
-            return np.zeros(len(v))
-    elif method=='doppler_1d':
-        try:
-            for k in range(N):
-                ccf[k] = _CCF_1d.ccf(mask_l[II], 
-                                    mask_h[II], 
-                                    w,
-                                    f,
-                                    mask_w[II],
-                                    sn, # Additional SNR scaling factor, just setting to 1
-                                    v[k]-berv,
-                                    0.) # Additional velocity that is not needed
-            return ccf
-        except Exception as e:
-            if verbose: print(e)
-            return np.zeros(len(v))
-    elif method=='pixel':
-        try:
-            for k in range(N):
-                #print v[k]
-                ccf[k] = _CCF_pix.ccf(mask_l[II],
+                ccf[k] = _CCF_3d.ccf(mask_l[II],
                                      mask_h[II],
                                      w,
                                      f,
                                      mask_w[II],
-                                     sn,
-                                     v[k]-berv,
-                                     0.,
-                                     0.)
+                                     sn,  # Additional SNR scaling factor, just setting to 1
+                                     v[k],
+                                     berv,
+                                     0.)  # Additional velocity that is not needed
+            return ccf
+        except Exception as e:
+            if verbose: print(e)
+            return np.zeros(len(v))
+    elif method == 'doppler_1d':
+        try:
+            for k in range(N):
+                ccf[k] = _CCF_1d.ccf(mask_l[II],
+                                     mask_h[II],
+                                     w,
+                                     f,
+                                     mask_w[II],
+                                     sn,  # Additional SNR scaling factor, just setting to 1
+                                     v[k] - berv,
+                                     0.)  # Additional velocity that is not needed
+            return ccf
+        except Exception as e:
+            if verbose: print(e)
+            return np.zeros(len(v))
+    elif method == 'pixel':
+        try:
+            for k in range(N):
+                # print v[k]
+                ccf[k] = _CCF_pix.ccf(mask_l[II],
+                                      mask_h[II],
+                                      w,
+                                      f,
+                                      mask_w[II],
+                                      sn,
+                                      v[k] - berv,
+                                      0.,
+                                      0.)
             return ccf
         except Exception as e:
             if verbose: print(e)
@@ -94,7 +99,9 @@ def calculate_ccf(w,f,v,mask_l,mask_h,mask_w,berv=0.,
     else:
         raise StandardError()
 
-def calculate_ccf_for_hpf_orders(w,f,v,M,berv,orders=[3,4,5,6,14,15,16,17,18],plot=False,ax=None,color=None,subslice=None):
+
+def calculate_ccf_for_hpf_orders(w, f, v, M, berv, orders=[3, 4, 5, 6, 14, 15, 16, 17, 18], plot=False, ax=None,
+                                 color=None, subslice=None):
     """
     Loop through and Calculate CCFs for all HPF orders
     
@@ -118,23 +125,25 @@ def calculate_ccf_for_hpf_orders(w,f,v,M,berv,orders=[3,4,5,6,14,15,16,17,18],pl
     N = len(orders)
     if ax is None and plot is True:
         fig, ax = plt.subplots()
-    ccf_array = np.zeros((num_hpf_orders+1,len(v)))
+    ccf_array = np.zeros((num_hpf_orders + 1, len(v)))
     for o in orders:
-        ccf_array[o] = calculate_ccf(w[o],f[o],v,M.wi,M.wf,M.weight,berv)
+        ccf_array[o] = calculate_ccf(w[o], f[o], v, M.wi, M.wf, M.weight, berv)
         if plot:
             if color is None:
-                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o))
+                ax.plot(v, ccf_array[o] / np.nanmax(ccf_array[o]), label="o={}".format(o))
             else:
-                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o),color=color)
-    ccf_array[num_hpf_orders] = np.nansum(ccf_array[orders],axis=0)
+                ax.plot(v, ccf_array[o] / np.nanmax(ccf_array[o]), label="o={}".format(o), color=color)
+    ccf_array[num_hpf_orders] = np.nansum(ccf_array[orders], axis=0)
     if plot:
-        ax.legend(loc="lower right",fontsize=10)
+        ax.legend(loc="lower right", fontsize=10)
         ax.set_xlabel('v [km/s]')
         ax.set_ylabel('Normalized flux')
         ax.set_title('CCF')
     return ccf_array
 
-def calculate_ccf_for_neid_orders(w,f,v,M,berv,orders=[55,56],plot=False,ax=None,color=None,subslice=None, num_neid_orders = 94):
+
+def calculate_ccf_for_neid_orders(w, f, v, M, berv, orders=[55, 56], plot=False, ax=None, color=None, subslice=None,
+                                  num_neid_orders=94):
     """
     Loop through and Calculate CCFs for all HPF orders
     
@@ -154,23 +163,22 @@ def calculate_ccf_for_neid_orders(w,f,v,M,berv,orders=[55,56],plot=False,ax=None
         orders = [5]#[3,4,5,6],14,15,16,17
         c = calculate_ccf_for_hpf_orders(w,f,v,M,berv,orders=orders,plot=True)
     """
-    
+
     N = len(orders)
     if ax is None and plot is True:
         fig, ax = plt.subplots()
-    ccf_array = np.zeros((num_neid_orders+1,len(v)))
+    ccf_array = np.zeros((num_neid_orders + 1, len(v)))
     for o in (np.array(orders) - 10):
-        ccf_array[o] = calculate_ccf(w[o],f[o],v,M.wi,M.wf,M.weight,berv)
+        ccf_array[o] = calculate_ccf(w[o], f[o], v, M.wi, M.wf, M.weight, berv)
         if plot:
             if color is None:
-                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o))
+                ax.plot(v, ccf_array[o] / np.nanmax(ccf_array[o]), label="o={}".format(o + 10))
             else:
-                ax.plot(v,ccf_array[o]/np.nanmax(ccf_array[o]),label="o={}".format(o),color=color)
-    ccf_array[num_neid_orders] = np.nansum(ccf_array[(np.array(orders) - 10)],axis=0)
+                ax.plot(v, ccf_array[o] / np.nanmax(ccf_array[o]), label="o={}".format(o + 10), color=color)
+    ccf_array[num_neid_orders] = np.nansum(ccf_array[(np.array(orders) - 10)], axis=0)
     if plot:
-        ax.legend(loc="lower right",fontsize=10)
+        ax.legend(loc="lower right", fontsize=10)
         ax.set_xlabel('v [km/s]')
         ax.set_ylabel('Normalized flux')
         ax.set_title('CCF')
     return ccf_array
-
