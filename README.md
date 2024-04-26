@@ -4,7 +4,7 @@ Easily calculate Cross Correlation Functions (CCFs) from different high resoluti
 # Installation instructions
 To install, run the following commands:
 ```
-git clone git@github.com:gummiks/crosscorr.git
+git clone [git@github.com:gummiks/crosscorr.git](https://github.com/TeHanHunter/crosscorr.git)
 cd crosscorr
 python setup.py install
 ```
