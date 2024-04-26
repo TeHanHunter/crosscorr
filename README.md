@@ -6,7 +6,7 @@ To install, run the following commands:
 ```
 git clone https://github.com/TeHanHunter/crosscorr.git
 cd crosscorr
-python setup.py install
+python3 setup.py install
 ```
 This should build the fortran code as well.
 
