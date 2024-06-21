@@ -25,7 +25,7 @@ setup(name='crosscorr',
       license='GPLv3',
       classifiers=['Topic :: Scientific/Engineering :: Astronomy'],
       keywords='Spectra Astronomy',
-      package_data={'crosscorr': ['data/espresso/*']},
+      package_data={'crosscorr': ['data/espresso/masks/*']},
       include_package_data=True,
       ext_modules=[CCF_1d, CCF_3d, CCF_pix],
       # NOTE: Manifest.in doees not seem to work with numpy.distutils.core
