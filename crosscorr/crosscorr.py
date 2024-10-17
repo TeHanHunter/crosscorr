@@ -40,7 +40,8 @@ def calculate_ccf(w, f, v, mask_l, mask_h, mask_w, berv=0.,
     w = w[mm]
     f = f[mm]
     II = np.where((mask_l > wavel_clip_edges + w.min()) & (mask_h < w.max() - wavel_clip_edges))
-
+    print(II)
+    print(len(II[0]))
     # This is an additional scaling parameter in the CERES CCF generation, we don't need that so set to 1
     sn = np.ones(len(f))
     # print(len(mask_l > wavel_clip_edges + w.min()))
